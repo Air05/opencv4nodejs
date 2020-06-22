@@ -1,7 +1,11 @@
 #include "core.h"
 #include "coreBindings.h"
+#include "coreConstants.h"
+#include "matTypes.h"
 
 NAN_MODULE_INIT(Core::Init) {
+	initMatTypes(target);
+  CoreConstants::Init(target);
   Mat::Init(target);
   Point::Init(target);
   Vec::Init(target);
@@ -9,6 +13,7 @@ NAN_MODULE_INIT(Core::Init) {
   Rect::Init(target);
   RotatedRect::Init(target);
   TermCriteria::Init(target);
+  HistAxes::Init(target);
 
   Nan::SetMethod(target, "getBuildInformation", GetBuildInformation);
   Nan::SetMethod(target, "partition", Partition);
@@ -20,6 +25,37 @@ NAN_MODULE_INIT(Core::Init) {
   Nan::SetMethod(target, "getNumThreads", GetNumThreads);
   Nan::SetMethod(target, "setNumThreads", SetNumThreads);
   Nan::SetMethod(target, "getThreadNum", GetThreadNum);
+
+  Nan::SetMethod(target, "addWeighted", AddWeighted);
+  Nan::SetMethod(target, "addWeightedAsync", AddWeightedAsync);
+  Nan::SetMethod(target, "minMaxLoc", MinMaxLoc);
+  Nan::SetMethod(target, "minMaxLocAsync", MinMaxLocAsync);
+  Nan::SetMethod(target, "findNonZero", FindNonZero);
+  Nan::SetMethod(target, "findNonZeroAsync", FindNonZeroAsync);
+  Nan::SetMethod(target, "countNonZero", CountNonZero);
+  Nan::SetMethod(target, "countNonZeroAsync", CountNonZeroAsync);
+  Nan::SetMethod(target, "split", Split);
+  Nan::SetMethod(target, "splitAsync", SplitAsync);
+  Nan::SetMethod(target, "mulSpectrums", MulSpectrums);
+  Nan::SetMethod(target, "mulSpectrumsAsync", MulSpectrumsAsync);
+  Nan::SetMethod(target, "transform", Transform);
+  Nan::SetMethod(target, "transformAsync", TransformAsync);
+  Nan::SetMethod(target, "perspectiveTransform", PerspectiveTransform);
+  Nan::SetMethod(target, "perspectiveTransformAsync", PerspectiveTransformAsync);
+  Nan::SetMethod(target, "convertScaleAbs", ConvertScaleAbs);
+  Nan::SetMethod(target, "convertScaleAbsAsync", ConvertScaleAbsAsync);
+  Nan::SetMethod(target, "sum", Sum);
+  Nan::SetMethod(target, "sumAsync", SumAsync);
+  Nan::SetMethod(target, "mean", Mean);
+  Nan::SetMethod(target, "meanAsync", MeanAsync);
+  Nan::SetMethod(target, "meanStdDev", MeanStdDev);
+  Nan::SetMethod(target, "meanStdDevAsync", MeanStdDevAsync);
+  Nan::SetMethod(target, "reduce", Reduce);
+  Nan::SetMethod(target, "reduceAsync", ReduceAsync);
+  Nan::SetMethod(target, "eigen", Eigen);
+  Nan::SetMethod(target, "eigenAsync", EigenAsync);
+  Nan::SetMethod(target, "solve", Solve);
+  Nan::SetMethod(target, "solveAsync", SolveAsync);
 };
 
 NAN_METHOD(Core::GetBuildInformation) {
@@ -92,6 +128,13 @@ NAN_METHOD(Core::Partition) {
 	}
     numLabels = cv::partition(pts, labels, predicateFactory<Vec4, cv::Vec4d>(cb));
   }
+  else if (Vec6::hasInstance(data0)) {
+	std::vector<cv::Vec6d> pts;
+	if (Vec6::ArrayConverter::arg(0, &pts, info)) {
+		return tryCatch.reThrow();
+	}
+    numLabels = cv::partition(pts, labels, predicateFactory<Vec6, cv::Vec6d>(cb));
+  }
   else if (Mat::hasInstance(data0)) {
     std::vector<cv::Mat> mats;
 	if (Mat::ArrayConverter::arg(0, &mats, info)) {
@@ -112,11 +155,11 @@ NAN_METHOD(Core::Kmeans) {
 	  return tryCatch.throwError("expected arg 0 to be an array");
   }
   v8::Local<v8::Array> jsData = v8::Local<v8::Array>::Cast(info[0]);
-  
+
   if (jsData->Length() < 1) {
 	  return tryCatch.throwError("expected data to contain at least 1 element");
   }
-  
+
   v8::Local<v8::Value> data0 = Nan::Get(jsData, 0).ToLocalChecked();
   bool isPoint2 = Point2::hasInstance(data0);
 
@@ -139,14 +182,14 @@ NAN_METHOD(Core::Kmeans) {
 
   std::vector<int> labels;
   cv::Mat centersMat;
-  
+
   if (isPoint2) {
     cv::kmeans(pts2d, k, labels, termCriteria, attempts, flags, centersMat);
   }
   else {
     cv::kmeans(pts3d, k, labels, termCriteria, attempts, flags, centersMat);
   }
-  
+
   v8::Local<v8::Object> ret = Nan::New<v8::Object>();
   Nan::Set(ret, FF::newString("labels"), FF::IntArrayConverter::wrap(labels));
 
@@ -163,8 +206,8 @@ NAN_METHOD(Core::Kmeans) {
       centers.push_back(cv::Point3f(centersMat.at<float>(i, 0), centersMat.at<float>(i, 1), centersMat.at<float>(i, 2)));
     }
 	Nan::Set(ret, FF::newString("centers"), Point3::ArrayWithCastConverter<cv::Point3f>::wrap(centers));
-  } 
-  
+  }
+
   info.GetReturnValue().Set(ret);
 }
 
@@ -199,4 +242,132 @@ NAN_METHOD(Core::SetNumThreads) {
 
 NAN_METHOD(Core::GetThreadNum) {
   info.GetReturnValue().Set(FF::IntConverter::wrap(cv::getThreadNum()));
+}
+
+NAN_METHOD(Core::AddWeighted) {
+	FF::syncBinding<CoreBindings::AddWeighted>("Core", "AddWeighted", info);
+}
+
+NAN_METHOD(Core::AddWeightedAsync) {
+	FF::asyncBinding<CoreBindings::AddWeighted>("Core", "AddWeighted", info);
+}
+
+NAN_METHOD(Core::MinMaxLoc) {
+	FF::syncBinding<CoreBindings::MinMaxLoc>("Core", "MinMaxLoc", info);
+}
+
+NAN_METHOD(Core::MinMaxLocAsync) {
+	FF::asyncBinding<CoreBindings::MinMaxLoc>("Core", "MinMaxLoc", info);
+}
+
+NAN_METHOD(Core::FindNonZero) {
+	FF::syncBinding<CoreBindings::FindNonZero>("Core", "FindNonZero", info);
+}
+
+NAN_METHOD(Core::FindNonZeroAsync) {
+	FF::asyncBinding<CoreBindings::FindNonZero>("Core", "FindNonZero", info);
+}
+
+NAN_METHOD(Core::CountNonZero) {
+	FF::syncBinding<CoreBindings::CountNonZero>("Core", "CountNonZero", info);
+}
+
+NAN_METHOD(Core::CountNonZeroAsync) {
+	FF::asyncBinding<CoreBindings::CountNonZero>("Core", "CountNonZero", info);
+}
+
+NAN_METHOD(Core::Normalize) {
+	FF::syncBinding<CoreBindings::Normalize>("Core", "Normalize", info);
+}
+
+NAN_METHOD(Core::NormalizeAsync) {
+	FF::asyncBinding<CoreBindings::Normalize>("Core", "Normalize", info);
+}
+
+NAN_METHOD(Core::Split) {
+	FF::syncBinding<CoreBindings::Split>("Core", "Split", info);
+}
+
+NAN_METHOD(Core::SplitAsync) {
+	FF::asyncBinding<CoreBindings::Split>("Core", "Split", info);
+}
+
+NAN_METHOD(Core::MulSpectrums) {
+	FF::syncBinding<CoreBindings::MulSpectrums>("Core", "MulSpectrums", info);
+}
+
+NAN_METHOD(Core::MulSpectrumsAsync) {
+	FF::asyncBinding<CoreBindings::MulSpectrums>("Core", "MulSpectrums", info);
+}
+
+NAN_METHOD(Core::Transform) {
+	FF::syncBinding<CoreBindings::Transform>("Core", "Transform", info);
+}
+
+NAN_METHOD(Core::TransformAsync) {
+	FF::asyncBinding<CoreBindings::Transform>("Core", "Transform", info);
+}
+
+NAN_METHOD(Core::PerspectiveTransform) {
+	FF::syncBinding<CoreBindings::PerspectiveTransform>("Core", "PerspectiveTransform", info);
+}
+
+NAN_METHOD(Core::PerspectiveTransformAsync) {
+	FF::asyncBinding<CoreBindings::PerspectiveTransform>("Core", "PerspectiveTransform", info);
+}
+
+NAN_METHOD(Core::Sum) {
+	FF::syncBinding<CoreBindings::Sum>("Core", "Sum", info);
+}
+
+NAN_METHOD(Core::SumAsync) {
+	FF::asyncBinding<CoreBindings::Sum>("Core", "Sum", info);
+}
+
+NAN_METHOD(Core::ConvertScaleAbs) {
+	FF::syncBinding<CoreBindings::ConvertScaleAbs>("Core", "ConvertScaleAbs", info);
+}
+
+NAN_METHOD(Core::ConvertScaleAbsAsync) {
+	FF::asyncBinding<CoreBindings::ConvertScaleAbs>("Core", "ConvertScaleAbs", info);
+}
+
+NAN_METHOD(Core::Mean) {
+	FF::syncBinding<CoreBindings::Mean>("Core", "Mean", info);
+}
+
+NAN_METHOD(Core::MeanAsync) {
+	FF::asyncBinding<CoreBindings::Mean>("Core", "Mean", info);
+}
+
+NAN_METHOD(Core::MeanStdDev) {
+	FF::syncBinding<CoreBindings::MeanStdDev>("Core", "MeanStdDev", info);
+}
+
+NAN_METHOD(Core::MeanStdDevAsync) {
+	FF::asyncBinding<CoreBindings::MeanStdDev>("Core", "MeanStdDev", info);
+}
+
+NAN_METHOD(Core::Reduce) {
+	FF::syncBinding<CoreBindings::Reduce>("Core", "Reduce", info);
+}
+
+NAN_METHOD(Core::ReduceAsync) {
+	FF::asyncBinding<CoreBindings::Reduce>("Core", "Reduce", info);
+}
+
+NAN_METHOD(Core::Eigen) {
+	FF::syncBinding<CoreBindings::Eigen>("Core", "Eigen", info);
+}
+
+NAN_METHOD(Core::EigenAsync) {
+	FF::asyncBinding<CoreBindings::Eigen>("Core", "Eigen", info);
+}
+
+NAN_METHOD(Core::Solve) {
+	FF::syncBinding<CoreBindings::Solve>("Core", "Solve", info);
+}
+
+NAN_METHOD(Core::SolveAsync) {
+	FF::asyncBinding<CoreBindings::Solve>("Core", "Solve", info);
 }

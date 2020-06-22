@@ -35,6 +35,14 @@ export class Mat {
   constructor(data: Buffer, rows: number, cols: number, type?: number);
   abs(): Mat;
   absdiff(otherMat: Mat): Mat;
+  accumulate(src: Mat, mask?: Mat): Mat;
+  accumulateAsync(src: Mat, mask?: Mat): Promise<Mat>;
+  accumulateProduct(src1: Mat, src2: Mat, mask?: Mat): Mat;
+  accumulateProductAsync(src1: Mat, src2:Mat, mask?: Mat): Promise<Mat>;
+  accumulateSquare(src: Mat, mask?: Mat): Mat;
+  accumulateSquareAsync(src: Mat, mask?: Mat): Promise<Mat>;
+  accumulateWeighted(src: Mat, alpha: number, mask?: Mat): Mat;
+  accumulateWeightedAsync(src: Mat, alpha: number, mask?: Mat): Promise<Mat>;
   adaptiveThreshold(maxVal: number, adaptiveMethod: number, thresholdType: number, blockSize: number, C: number): Mat;
   adaptiveThresholdAsync(maxVal: number, adaptiveMethod: number, thresholdType: number, blockSize: number, C: number): Promise<Mat>;
   add(otherMat: Mat): Mat;
@@ -173,8 +181,6 @@ export class Mat {
   getOptimalNewCameraMatrix(distCoeffs: number[], imageSize: Size, alpha: number, newImageSize?: Size, centerPrincipalPoint?: boolean): { out: Mat, validPixROI: Rect };
   getOptimalNewCameraMatrixAsync(distCoeffs: number[], imageSize: Size, alpha: number, newImageSize?: Size, centerPrincipalPoint?: boolean): Promise<{ out: Mat, validPixROI: Rect }>;
   getRegion(region: Rect): Mat;
-  goodFeaturesToTrack(maxCorners: number, qualityLevel: number, minDistance: number, mask?: Mat, blockSize?: number, useHarrisDetector?: boolean, harrisK?: number): Point2[];
-  goodFeaturesToTrackAsync(maxCorners: number, qualityLevel: number, minDistance: number, mask?: Mat, blockSize?: number, useHarrisDetector?: boolean, harrisK?: number): Promise<Point2[]>;
   goodFeaturesToTrack(maxCorners: number, qualityLevel: number, minDistance: number, mask?: Mat, blockSize?: number, gradientSize?: number, useHarrisDetector?: boolean, harrisK?: number): Point2[];
   goodFeaturesToTrackAsync(maxCorners: number, qualityLevel: number, minDistance: number, mask?: Mat, blockSize?: number, gradientSize?: number, useHarrisDetector?: boolean, harrisK?: number): Promise<Point2[]>;
   grabCut(mask: Mat, rect: Rect, bgdModel: Mat, fgdModel: Mat, iterCount: number, mode: number): void;
@@ -199,6 +205,7 @@ export class Mat {
   inRangeAsync(lower: Vec3, upper: Vec3): Promise<Mat>;
   integral(sdepth?: number, sqdepth?: number): { sum: Mat, sqsum: Mat, tilted: Mat };
   integralAsync(sdepth?: number, sqdepth?: number): Promise<{ sum: Mat, sqsum: Mat, tilted: Mat }>;
+  inv(): Mat;
   laplacian(ddepth: number, ksize?: number, scale?: number, delta?: number, borderType?: number): Mat;
   laplacianAsync(ddepth: number, ksize?: number, scale?: number, delta?: number, borderType?: number): Promise<Mat>;
   matMul(B: Mat): Mat;
@@ -224,6 +231,7 @@ export class Mat {
   norm(src2: Mat, normType?: number, mask?: Mat): number;
   norm(normType?: number, mask?: Mat): number;
   normalize(alpha?: number, beta?: number, normType?: number, dtype?: number, mask?: Mat): Mat;
+  normalizeAsync(alpha?: number, beta?: number, normType?: number, dtype?: number, mask?: Mat): Promise<Mat>;
   or(otherMat: Mat): Mat;
   padToSquare(color: Vec3): Mat;
   perspectiveTransform(m: Mat): Mat;
@@ -236,7 +244,8 @@ export class Mat {
   push_backAsync(mat: Mat): Promise<Mat>;
   pushBack(mat: Mat): Mat;
   pushBackAsync(mat: Mat): Promise<Mat>;
-  putText(text: string, origin: Point2, fontFace: number, fontScale: number, color?: Vec3, lineType?: number, thickness?: number, bottomLeftOrigin?: boolean): void;
+  putText(text: string, origin: Point2, fontFace: number, fontScale: number, color?: Vec3, thickness?: number, lineType?: number, bottomLeftOrigin?: boolean): void;
+  putTextAsync(text: string, origin: Point2, fontFace: number, fontScale: number, color?: Vec3, thickness?: number, lineType?: number, bottomLeftOrigin?: boolean): Promise<void>;
   pyrDown(size?: Size, borderType?: number): Mat;
   pyrDownAsync(size?: Size, borderType?: number): Promise<Mat>;
   pyrUp(size?: Size, borderType?: number): Mat;
@@ -246,6 +255,7 @@ export class Mat {
   rectify3Collinear(distCoeffs1: number[], cameraMatrix2: Mat, distCoeffs2: number[], cameraMatrix3: Mat, distCoeffs3: number[], imageSize: Size, R12: Mat, T12: Vec3, R13: Mat, T13: Vec3, alpha: number, newImageSize: Size, flags: number): { returnValue: number, R1: Mat, R2: Mat, R3: Mat, P1: Mat, P2: Mat, P3: Mat, Q: Mat, roi1: Rect, roi2: Rect };
   rectify3CollinearAsync(distCoeffs1: number[], cameraMatrix2: Mat, distCoeffs2: number[], cameraMatrix3: Mat, distCoeffs3: number[], imageSize: Size, R12: Mat, T12: Vec3, R13: Mat, T13: Vec3, alpha: number, newImageSize: Size, flags: number): Promise<{ returnValue: number, R1: Mat, R2: Mat, R3: Mat, P1: Mat, P2: Mat, P3: Mat, Q: Mat, roi1: Rect, roi2: Rect }>;
   reduce(dim: number, rtype: number, dtype?: number): Mat;
+  reduceAsync(dim: number, rtype: number, dtype?: number): Promise<Mat>;
   reprojectImageTo3D(Q: Mat, handleMissingValues?: boolean, ddepth?: number): Mat;
   reprojectImageTo3DAsync(Q: Mat, handleMissingValues?: boolean, ddepth?: number): Promise<Mat>;
   rescale(factor: number): Mat;
@@ -264,6 +274,8 @@ export class Mat {
   rqDecomp3x3Async(): Promise<{ returnValue: Vec3, mtxR: Mat, mtxQ: Mat, Qx: Mat, Qy: Mat, Qz: Mat }>;
   scharr(ddepth: number, dx: number, dy: number, scale?: number, delta?: number, borderType?: number): Mat;
   scharrAsync(ddepth: number, dx: number, dy: number, scale?: number, delta?: number, borderType?: number): Promise<Mat>;
+  seamlessClone(dst: Mat, mask: Mat, p: Point2, flags: number): Mat;
+  seamlessCloneAsync(dst: Mat, mask: Mat, p: Point2, flags: number): Promise<Mat>;
   sepFilter2D(ddepth: number, kernelX: Mat, kernelY: Mat, anchor?: Point2, delta?: number, borderType?: number): Mat;
   sepFilter2DAsync(ddepth: number, kernelX: Mat, kernelY: Mat, anchor?: Point2, delta?: number, borderType?: number): Promise<Mat>;
   set(row: number, col: number, value: number): void;
@@ -321,6 +333,6 @@ export class Mat {
   watershed(markers: Mat): Mat;
   watershedAsync(markers: Mat): Promise<Mat>;
   release(): void;
-  
+
   static eye(rows: number, cols: number, type: number): Mat;
 }

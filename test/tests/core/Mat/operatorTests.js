@@ -1,24 +1,26 @@
-const cv = global.dut;
-const {
-  assertError,
-  assertDataDeepEquals,
-  assertMetaData
-} = global.utils;
 const { expect } = require('chai');
 
-const operatorRequiresArg = (func, isScalar) => {
-  it('should throw if no args', () => {
-    assertError(
-      () => {
-        const mat = new cv.Mat();
-        return mat[func].bind(mat)();
-      },
-      `expected arg to be ${isScalar ? 'a Scalar' : 'an instance of Mat'}`
-    );
-  });
-};
+module.exports = function ({ cv, utils }) {
 
-module.exports = () => {
+  const {
+    assertError,
+    assertDataDeepEquals,
+    assertDataAlmostDeepEquals,
+    assertMetaData
+  } = utils;
+
+  const operatorRequiresArg = (func, isScalar) => {
+    it('should throw if no args', () => {
+      assertError(
+        () => {
+          const mat = new cv.Mat();
+          return mat[func].bind(mat)();
+        },
+        `expected arg to be ${isScalar ? 'a Scalar' : 'an instance of Mat'}`
+      );
+    });
+  };
+
   describe('add', () => {
     operatorRequiresArg('add');
 
@@ -353,6 +355,24 @@ module.exports = () => {
     });
   });
   
+  describe('inv', () => {
+    it('apply inverse to matrix', () => {
+      const mat0 = new cv.Mat([
+        [4, 7],
+        [2, 6]
+      ], cv.CV_32F);
+      const expectedResult = [
+        [0.6, -0.7],
+        [-0.2, 0.4]
+      ];
+
+      const res = mat0.inv();
+      assertMetaData(res)(2, 2, cv.CV_32F);
+      
+      assertDataAlmostDeepEquals(res.getDataAsArray(), expectedResult);
+    });
+  });
+  
   describe('matMul', () => {
     operatorRequiresArg('matMul');
 
@@ -374,4 +394,5 @@ module.exports = () => {
       assertDataDeepEquals(res.getDataAsArray(), expectedResult);
     });
   });
+
 };
